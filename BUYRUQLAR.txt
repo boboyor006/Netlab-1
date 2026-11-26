@@ -1,0 +1,84 @@
+NetSim — BUYRUQLAR (ketma-ket yozing)
+Namunani oching: R1, SW1, PC1, PC2, Server1. Terminal tugmasini bosib, qurilmani tanlang.
+
+=== 1-QADAM. SW1: nom, VLAN va IP ===
+enable
+configure terminal
+hostname SW1
+vlan 10
+name Ofis
+vlan 20
+name Mehmon
+interface vlan 1
+ip address 192.168.1.2 255.255.255.0
+no shutdown
+exit
+ip default-gateway 192.168.1.1
+
+=== 2-QADAM. SW1: parollar ===
+enable secret cisco123
+line console 0
+password con123
+login
+line vty 0 4
+password tel123
+login
+exit
+service password-encryption
+banner motd #Ruxsatsiz kirish taqiqlanadi#
+end
+write memory
+
+=== 3-QADAM. R1: router IP ===
+enable
+configure terminal
+interface g0/0
+ip address 192.168.1.1 255.255.255.0
+no shutdown
+end
+show ip interface brief
+
+=== 4-QADAM. PC1: tekshirish va telnet ===
+ipconfig
+ping 192.168.1.2
+ping 192.168.1.1
+telnet 192.168.1.2
+  (parol: tel123, keyin: enable, parol: cisco123)
+show vlan brief
+exit
+
+=== 5-QADAM. SW1: portlarni VLANga ajratish (switchport) ===
+enable
+  (parol so'ralsa: avval con123, enable uchun cisco123)
+configure terminal
+interface fa0/1
+switchport mode access
+switchport access vlan 10
+interface fa0/2
+switchport mode access
+switchport access vlan 20
+interface g0/1
+switchport mode trunk
+switchport trunk allowed vlan 1,10,20
+end
+show vlan brief
+show interfaces trunk
+show running-config
+
+=== 6-QADAM. R1: VLANlar orasida aloqa (router-on-a-stick) ===
+enable
+configure terminal
+interface g0/0.10
+encapsulation dot1q 10
+ip address 192.168.10.1 255.255.255.0
+interface g0/0.20
+encapsulation dot1q 20
+ip address 192.168.20.1 255.255.255.0
+end
+
+=== 7-QADAM. Kompyuterlarga yangi IP ===
+PC1:  ip 192.168.10.10 255.255.255.0 192.168.10.1
+PC2:  ip 192.168.20.10 255.255.255.0 192.168.20.1
+PC1:  ping 192.168.20.10
+
+Parollar: konsol = con123, enable = cisco123, telnet = tel123
